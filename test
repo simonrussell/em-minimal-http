@@ -3,8 +3,18 @@
 $: << File.expand_path('../lib', __FILE__)
 require 'em_minimal_http'
 
+class MyApp
+  
+  def call(env)
+    [200, {'Content-Type' => 'text/plain'}, ['Hello Rack!']]
+  end
+  
+end
+
 EM.run do
-  EM.start_server "127.0.0.1", 3030, MinimalHttp::EmConnection
+  EM.start_server "127.0.0.1", 3030, MinimalHttp::EmConnection do |conn|
+    conn.pipeline_class = MinimalHttp::RackPipeline.factory(MyApp)
+  end
 end
 
 

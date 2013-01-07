@@ -90,10 +90,44 @@ class MinimalHttp::Pipeline
   def initialize(response_renderer)
     @response_renderer = response_renderer
   end
-  
+    
+end
+
+class MinimalHttp::HelloWorldPipeline < MinimalHttp::Pipeline
+
   def <<(request)
     puts request.inspect
     @response_renderer << request.response(200, {'Content-Type' => 'text/plain'}, ['hello world'])
+  end
+
+end
+
+class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
+
+  def initialize(app, *args)
+    super(*args)
+    
+    @app = app  
+  end
+  
+  def <<(request)
+    env = {}
+    rack_response = @app.call(env)
+    @response_renderer << request.response(*rack_response)
+  end
+  
+  class Factory
+    def initialize(app_class)
+      @app_class = app_class
+    end
+    
+    def new(*args)
+      MinimalHttp::RackPipeline.new(@app_class.new, *args)
+    end
+  end
+  
+  def self.factory(app_class)
+    Factory.new(app_class)
   end
   
 end
@@ -104,14 +138,16 @@ class MinimalHttp::Server
 end
 
 class MinimalHttp::EmConnection < EM::Connection
-  
-  def post_init
-    @response_renderer = MinimalHttp::ResponseRenderer.new(self)
-    @pipeline = MinimalHttp::Pipeline.new(@response_renderer)
-    @stream = MinimalHttp::RequestParser.new(@pipeline)
-  end
-  
+
+  attr_accessor :pipeline_class
+
   def receive_data(data)
+    unless @stream
+      @response_renderer = MinimalHttp::ResponseRenderer.new(self)
+      @pipeline = @pipeline_class.new(@response_renderer)
+      @stream = MinimalHttp::RequestParser.new(@pipeline)    
+    end
+  
     @stream << data
   end
   
