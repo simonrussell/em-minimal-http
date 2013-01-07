@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+
+$: << File.expand_path('../lib', __FILE__)
+require 'em_minimal_http'
+
+EM.run do
+  EM.start_server "127.0.0.1", 3030, MinimalHttp::EmConnection
+end
+
+
