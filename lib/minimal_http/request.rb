@@ -32,7 +32,7 @@ class MinimalHttp::Request
   
   def server_port
     if @headers['Host'] =~ HOST_REGEX
-      $3
+      $3 || '80'
     else
       '80'
     end

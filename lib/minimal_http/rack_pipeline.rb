@@ -1,5 +1,7 @@
 # Copyright (c) 2013 Simon Russell.  See LICENCE for details.
 
+require 'stringio'
+
 class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
 
   def initialize(app, *args)
@@ -9,7 +11,7 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
   end
   
   def <<(request)
-    puts request.inspect
+    #puts request.inspect
     
     env = {
       'REQUEST_METHOD' => request.http_method,

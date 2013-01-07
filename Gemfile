@@ -7,8 +7,9 @@ gem 'http_parser.rb'
 
 group :test do
   gem 'rspec'
+  gem 'ffaker'
 end
 
-group :development do
+group :development, :test do
   gem 'rack'
 end

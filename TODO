@@ -1,0 +1,4 @@
+- specs
+- invalid request handling
+- keepalive
+- streaming responses (chunked?)
