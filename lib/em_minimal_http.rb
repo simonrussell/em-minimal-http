@@ -11,9 +11,8 @@ class MinimalHttp::Response
   def initialize(request, status_code, headers, body)
     @request = request
     @status_code = status_code
-    @headers = headers.freeze
-    @body = body.freeze
-    freeze
+    @headers = headers
+    @body = body
   end
   
 end
@@ -24,18 +23,47 @@ class MinimalHttp::Request
   attr_reader :http_method
   attr_reader :request_url
   attr_reader :headers
+  attr_reader :body
   
   def initialize(info)
     @http_version = info.fetch(:http_version)
     @http_method = info.fetch(:http_method)
     @request_url = info.fetch(:request_url)
     @headers = info.fetch(:headers)
+    @body = info.fetch(:body)
   end
   
   def response(*args)
     MinimalHttp::Response.new(self, *args)
   end
   
+  HOST_REGEX = /\A([^\:]+)(\:(\d+))?\z/
+  
+  def server_name
+    if @headers['Host'] =~ HOST_REGEX
+      $1
+    else
+      'unknown'
+    end
+  end
+  
+  def server_port
+    if @headers['Host'] =~ HOST_REGEX
+      $3
+    else
+      '80'
+    end
+  end
+  
+  QUERY_REGEX = /\?([^\?]*)\z/
+  
+  def query_string
+    if @request_url =~ QUERY_REGEX
+      $1
+    else
+      ''
+    end
+  end
 end
 
 
@@ -44,19 +72,27 @@ class MinimalHttp::RequestParser
   def initialize(pipeline)
     @pipeline = pipeline
     @parser = Http::Parser.new(self)
+    @body = ''.encode!('ASCII-8BIT')
   end
 
   def <<(data)
     @parser << data
   end
   
+  def on_body(data)
+    @body << data
+  end
+  
   def on_message_complete
-    @pipeline << MinimalHttp::Request.new(
-                   http_version: @parser.http_version.join('.'),
-                   http_method: @parser.http_method,
-                   request_url: @parser.request_url,
-                   headers: @parser.headers
-                 )
+    request = MinimalHttp::Request.new(
+                http_version: @parser.http_version.join('.'),
+                http_method: @parser.http_method,
+                request_url: @parser.request_url,
+                headers: @parser.headers,
+                body: @body
+              )
+  
+    @pipeline << request
   end
 
 end
@@ -111,18 +147,36 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
   end
   
   def <<(request)
-    env = {}
+    puts request.inspect
+    
+    env = {
+      'REQUEST_METHOD' => request.http_method,
+      'SERVER_NAME' => request.server_name,
+      'SERVER_PORT' => request.server_port,
+      'SCRIPT_NAME' => '',
+      'PATH_INFO' => request.request_url,
+      'QUERY_STRING' => request.query_string,
+      
+      'rack.version' => [1,1],
+      'rack.url_scheme' => 'http',
+      'rack.input' => StringIO.new(request.body),
+      'rack.errors' => $stderr,
+      'rack.multithread' => true,
+      'rack.multiprocess' => false,
+      'rack.run_once' => false
+    }
+    
     rack_response = @app.call(env)
     @response_renderer << request.response(*rack_response)
   end
   
   class Factory
-    def initialize(app_class)
-      @app_class = app_class
+    def initialize(app)
+      @app = app
     end
     
     def new(*args)
-      MinimalHttp::RackPipeline.new(@app_class.new, *args)
+      MinimalHttp::RackPipeline.new(@app, *args)
     end
   end
   
