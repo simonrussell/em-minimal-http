@@ -1,3 +1,5 @@
+# Copyright (c) 2013 Simon Russell.  See LICENCE for details.
+
 source :rubygems
 
 gem 'eventmachine'
