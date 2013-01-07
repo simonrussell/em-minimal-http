@@ -1,13 +1,15 @@
 require 'eventmachine'
+require 'http/parser'
 
 module MinimalHttp
 end
 
 class MinimalHttp::Response
   
-  attr_reader :status_code, :headers, :body
+  attr_reader :request, :status_code, :headers, :body
   
-  def initialize(status_code, headers, body)
+  def initialize(request, status_code, headers, body)
+    @request = request
     @status_code = status_code
     @headers = headers.freeze
     @body = body.freeze
@@ -18,8 +20,20 @@ end
 
 class MinimalHttp::Request
   
+  attr_reader :http_version
+  attr_reader :http_method
+  attr_reader :request_url
+  attr_reader :headers
+  
+  def initialize(info)
+    @http_version = info.fetch(:http_version)
+    @http_method = info.fetch(:http_method)
+    @request_url = info.fetch(:request_url)
+    @headers = info.fetch(:headers)
+  end
+  
   def response(*args)
-    MinimalHttp::Response.new(*args)
+    MinimalHttp::Response.new(self, *args)
   end
   
 end
@@ -29,11 +43,20 @@ class MinimalHttp::RequestParser
 
   def initialize(pipeline)
     @pipeline = pipeline
+    @parser = Http::Parser.new(self)
   end
 
   def <<(data)
-    # TODO some parsing!
-    @pipeline << MinimalHttp::Request.new
+    @parser << data
+  end
+  
+  def on_message_complete
+    @pipeline << MinimalHttp::Request.new(
+                   http_version: @parser.http_version.join('.'),
+                   http_method: @parser.http_method,
+                   request_url: @parser.request_url,
+                   headers: @parser.headers
+                 )
   end
 
 end
@@ -45,7 +68,6 @@ class MinimalHttp::ResponseRenderer
   end
   
   def <<(response)
-    puts response
     @output << "HTTP/1.0 #{response.status_code} Something\r\n"
     
     response.headers.each do |k, v|
@@ -70,6 +92,7 @@ class MinimalHttp::Pipeline
   end
   
   def <<(request)
+    puts request.inspect
     @response_renderer << request.response(200, {'Content-Type' => 'text/plain'}, ['hello world'])
   end
   
