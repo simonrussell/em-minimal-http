@@ -10,6 +10,9 @@ class MinimalHttp::RequestParser
 
   def <<(data)
     @parser << data
+  rescue Http::Parser::Error
+    # TODO logging
+    @pipeline << nil
   end
   
   def on_body(data)

@@ -47,4 +47,5 @@ class MinimalHttp::Request
       ''
     end
   end
+  
 end
