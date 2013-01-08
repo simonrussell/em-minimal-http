@@ -35,10 +35,10 @@ class MyStreamingPipeline < MinimalHttp::Pipeline
 
 end
 
+server = MinimalHttp::Server.new("127.0.0.1", 3030, MyApp.new)
+
 EM.run do
-  EM.start_server "127.0.0.1", 3030, MinimalHttp::EmConnection do |conn|
-    conn.pipeline_class = MyStreamingPipeline
-  end
+  server.start!
 end
 
 

@@ -42,8 +42,8 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
     end
   end
   
-  def self.factory(app_class)
-    Factory.new(app_class)
+  def self.factory(app)
+    Factory.new(app)
   end
   
 end
