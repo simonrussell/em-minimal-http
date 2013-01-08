@@ -17,14 +17,14 @@ class MinimalHttp::ResponseRenderer
       @output << "Connection: close\r\n"
     end
     
-    body = ''
+    body_size = 0
     response.body.each do |body_part|
-      body << body_part
+      body_size += body_part.bytesize
     end
 
-    @output << "Content-Length: #{body.bytesize}\r\n"
+    @output << "Content-Length: #{body_size}\r\n"
     @output << "\r\n"
-    @output << body
+    @output << MinimalHttp::StreamingBody.new(response.body)
     
     @output << nil unless response.request.keep_alive?  # close the stream
   end

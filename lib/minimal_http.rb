@@ -18,3 +18,5 @@ require 'minimal_http/rack_pipeline'
 
 require 'minimal_http/server'
 require 'minimal_http/em_connection'
+
+require 'minimal_http/streaming_body'
