@@ -23,9 +23,21 @@ class MyApp
   
 end
 
+class MyStreamingPipeline < MinimalHttp::Pipeline
+
+  def handle(request)
+    body = MinimalHttp::StreamingBody.new
+    body << "fish\n"
+    EM.add_timer(1) { body << "biscuits"; body.close }
+    
+    request.response(200, {'Content-Type' => 'text/plain'}, body)
+  end
+
+end
+
 EM.run do
   EM.start_server "127.0.0.1", 3030, MinimalHttp::EmConnection do |conn|
-    conn.pipeline_class = MinimalHttp::RackPipeline.factory(Rack::Lint.new(MyApp.new))
+    conn.pipeline_class = MyStreamingPipeline
   end
 end
 

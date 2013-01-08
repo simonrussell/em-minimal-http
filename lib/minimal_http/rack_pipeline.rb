@@ -10,14 +10,7 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
     @app = app  
   end
   
-  def <<(request)
-    #puts request.inspect
-    
-    if request.http_method == 'BADREQUEST'
-      @response_renderer << request.response(400, {'Content-Type' => 'text/plain'}, ['Bad Request'])
-      return
-    end
-    
+  def handle(request)
     env = {
       'REQUEST_METHOD' => request.http_method,
       'SERVER_NAME' => request.server_name,
@@ -36,7 +29,7 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
     }
     
     rack_response = @app.call(env)
-    @response_renderer << request.response(*rack_response)
+    request.response(*rack_response)
   end
   
   class Factory

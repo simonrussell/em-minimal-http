@@ -34,7 +34,7 @@ class MinimalHttp::EmConnection < EM::Connection
       send_data(output_data)
     when nil
       close_connection(true)
-      body_complete!(discard_buffer)
+      body_complete!(true)
     else
       puts "Bad output chunk #{output_data.inspect}"
     end  
