@@ -2,8 +2,7 @@
 
 source :rubygems
 
-gem 'eventmachine'
-gem 'http_parser.rb'
+gemspec
 
 group :test do
   gem 'rspec'

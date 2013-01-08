@@ -1,12 +1,17 @@
+PATH
+  remote: .
+  specs:
+    em-minimal-http (0.0.1)
+      eventmachine (~> 1.0)
+      http_parser.rb (~> 0.5)
+
 GEM
   remote: http://rubygems.org/
   specs:
     diff-lcs (1.1.3)
     eventmachine (1.0.0)
-    eventmachine (1.0.0-java)
     ffaker (1.15.0)
     http_parser.rb (0.5.3)
-    http_parser.rb (0.5.3-java)
     rack (1.4.2)
     rspec (2.12.0)
       rspec-core (~> 2.12.0)
@@ -22,8 +27,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
-  eventmachine
+  em-minimal-http!
   ffaker
-  http_parser.rb
   rack
   rspec
