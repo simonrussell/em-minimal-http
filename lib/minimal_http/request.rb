@@ -14,6 +14,11 @@ class MinimalHttp::Request
     @request_url = info.fetch(:request_url)
     @headers = info.fetch(:headers)
     @body = info.fetch(:body)
+    @keep_alive = info.fetch(:keep_alive)
+  end
+  
+  def keep_alive?
+    @keep_alive  
   end
   
   def response(*args)
@@ -47,5 +52,7 @@ class MinimalHttp::Request
       ''
     end
   end
+  
+  BAD_REQUEST = new(http_version: '1.0', http_method: 'BADREQUEST', request_url: '', headers: {}, body: ''.encode!('ASCII-8BIT'), keep_alive: false)
   
 end

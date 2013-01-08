@@ -13,6 +13,10 @@ class MinimalHttp::EmConnection < EM::Connection
   
     @stream << data
   end
+
+  def unbind
+    @stream << ''
+  end
   
   def <<(output_data)
     if output_data

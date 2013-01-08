@@ -11,7 +11,13 @@ describe MinimalHttp::RequestParser do
   let(:parsed_request) do
     parser << input
     output.length.should == 1
+    output.first.should_not be_keep_alive
     output.first
+  end
+  
+  let(:parsed_requests) do
+    parser << input
+    output
   end
   
   describe "parsed request" do
@@ -21,7 +27,7 @@ describe MinimalHttp::RequestParser do
       let(:http_version) { %w(1.0 1.1).sample }
       let(:http_method) { %w(GET HEAD).sample }
       let(:request_url) { "/#{Faker::Internet.domain_word}/#{Faker::Internet.domain_word}" }
-      let(:headers) { { "Host" => Faker::Internet.domain_name } }
+      let(:headers) { { "Host" => Faker::Internet.domain_name, "Connection" => "Close" } }
       
       let(:input) { "#{http_method} #{request_url} HTTP/#{http_version}\r\n#{headers.map { |k, v| "#{k}: #{v}\r\n" }.join('')}\r\n" }
 
@@ -34,9 +40,37 @@ describe MinimalHttp::RequestParser do
     context "with invalid request" do
       let(:input) { "aslklsajflsakdjflaskdjf\r\n\r\n" }
       
-      it { should be_nil }
+      it { should == MinimalHttp::Request::BAD_REQUEST }
     end
     
+  end
+
+  describe "multiple requests" do
+    let(:input) do
+      "GET / HTTP/1.1\r\n\r\n" +
+      "HEAD /blah HTTP/1.1\r\nConnection: Close\r\n\r\n"
+    end
+    
+    describe "first request" do
+      subject { parsed_requests[0] }
+    
+      its(:http_method) { should == 'GET' }
+      its(:request_url) { should == '/' }
+      it { should be_keep_alive }
+    end
+    
+    describe "second request" do
+      subject { parsed_requests[1] }
+      
+      its(:http_method) { should == 'HEAD' }
+      its(:request_url) { should == '/blah' }
+      it { should_not be_keep_alive }
+    end
+    
+    describe "number of requests" do
+      subject { parsed_requests }
+      its(:length) { should == 2 }
+    end
   end
 
 end

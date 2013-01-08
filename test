@@ -8,7 +8,17 @@ require 'rack'
 class MyApp
   
   def call(env)
-    [200, {'Content-Type' => 'text/plain'}, ['Hello Rack!']]
+    [200, {'Content-Type' => 'text/html'}, [
+      '<html><head>',
+      '<link rel="stylesheet" href="/other.css">',
+      '<link rel="stylesheet" href="/other2.css">',
+      '<link rel="stylesheet" href="/other3.css">',
+      '<link rel="stylesheet" href="/other4.css">',
+      '<link rel="stylesheet" href="/other5.css">',
+      '<link rel="stylesheet" href="/other6.css">',
+      '<link rel="stylesheet" href="/other7.css">',
+      '<link rel="stylesheet" href="/other8.css">',
+      '</head><h1>Hello rack!</h1></html>']]
   end
   
 end

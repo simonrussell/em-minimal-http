@@ -2,20 +2,23 @@
 
 class MinimalHttp::RequestParser
 
+  EMPTY_BODY = ''.force_encoding('ASCII-8BIT').freeze
+
   def initialize(pipeline)
     @pipeline = pipeline
     @parser = Http::Parser.new(self)
-    @body = ''.encode!('ASCII-8BIT')
+    @body = EMPTY_BODY
   end
 
   def <<(data)
     @parser << data
   rescue Http::Parser::Error
     # TODO logging
-    @pipeline << nil
+    @pipeline << MinimalHttp::Request::BAD_REQUEST
   end
   
   def on_body(data)
+    @body = @body.dup if @body.frozen?
     @body << data
   end
   
@@ -25,10 +28,13 @@ class MinimalHttp::RequestParser
                 http_method: @parser.http_method,
                 request_url: @parser.request_url,
                 headers: @parser.headers,
-                body: @body
+                body: @body,
+                keep_alive: @parser.keep_alive?
               )
-  
-    @pipeline << request
+              
+    @body = EMPTY_BODY
+
+    @pipeline << request    
   end
 
 end

@@ -4,6 +4,7 @@ describe MinimalHttp::Request do
 
   let(:http_version) { %w(1.0 1.1).sample }
   let(:http_method) { %w(GET POST PUT HEAD).sample }
+  let(:keep_alive) { [true, false].sample }
   
   let(:query_string) { "#{Faker::Internet.domain_word}=#{rand(1324)}" }
   let(:request_url) { ["/#{Faker::Internet.domain_word}/#{Faker::Internet.domain_word}", query_string].compact.join('?') }
@@ -21,7 +22,8 @@ describe MinimalHttp::Request do
       http_method: http_method,
       request_url: request_url,
       headers: headers,
-      body: body
+      body: body,
+      keep_alive: keep_alive
     )
   end
   
@@ -33,6 +35,7 @@ describe MinimalHttp::Request do
     its(:request_url) { should == request_url }
     its(:headers) { should == headers }
     its(:body) { should == body }
+    its(:keep_alive?) { should == keep_alive }
   end
   
   describe "#server_name" do

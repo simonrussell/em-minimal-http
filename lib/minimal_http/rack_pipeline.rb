@@ -13,6 +13,11 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
   def <<(request)
     #puts request.inspect
     
+    if request.http_method == 'BADREQUEST'
+      @response_renderer << request.response(400, {'Content-Type' => 'text/plain'}, ['Bad Request'])
+      return
+    end
+    
     env = {
       'REQUEST_METHOD' => request.http_method,
       'SERVER_NAME' => request.server_name,
