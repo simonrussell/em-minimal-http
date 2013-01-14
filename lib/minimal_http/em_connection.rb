@@ -8,7 +8,7 @@ class MinimalHttp::EmConnection < EM::Connection
     unless @stream
       @response_renderer = MinimalHttp::ResponseRenderer.new(self)
       @pipeline = @pipeline_class.new(@response_renderer)
-      @stream = MinimalHttp::RequestParser.new(@pipeline)
+      @stream = MinimalHttp::RequestParser.new(client_ip, @pipeline)
     end
   
     @stream << data
@@ -58,6 +58,11 @@ class MinimalHttp::EmConnection < EM::Connection
     @streaming_body = body
     @buffer = []
     @streaming_body.start_streaming!(self)
+  end
+  
+  def client_ip
+    port, ip = Socket.unpack_sockaddr_in(get_peername)
+    ip
   end
   
 end

@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe MinimalHttp::Request do
 
+  let(:client_ip) { Faker::Internet.ip_v4_address }
+
   let(:http_version) { %w(1.0 1.1).sample }
   let(:http_method) { %w(GET POST PUT HEAD).sample }
   let(:keep_alive) { [true, false].sample }
@@ -18,6 +20,7 @@ describe MinimalHttp::Request do
   
   let(:request) do
     MinimalHttp::Request.new(
+      client_ip: client_ip,
       http_version: http_version,
       http_method: http_method,
       request_url: request_url,

@@ -4,9 +4,11 @@ describe MinimalHttp::RequestParser do
 
   # we don't really want to test http_parser.rb, but we're putting just enough here to test our uses of it
   
+  let(:client_ip) { Faker::Internet.ip_v4_address }
+  
   let(:input) { '' }
   let(:output) { [] }
-  let(:parser) { MinimalHttp::RequestParser.new(output) }  
+  let(:parser) { MinimalHttp::RequestParser.new(client_ip, output) }  
   
   let(:parsed_request) do
     parser << input
@@ -31,6 +33,7 @@ describe MinimalHttp::RequestParser do
       
       let(:input) { "#{http_method} #{request_url} HTTP/#{http_version}\r\n#{headers.map { |k, v| "#{k}: #{v}\r\n" }.join('')}\r\n" }
 
+      its(:client_ip) { should == client_ip }
       its(:request_url) { should == request_url }
       its(:http_version) { should == http_version }
       its(:http_method) { should == http_method }
@@ -40,6 +43,7 @@ describe MinimalHttp::RequestParser do
     context "with invalid request" do
       let(:input) { "aslklsajflsakdjflaskdjf\r\n\r\n" }
       
+#      its(:client_ip) { should == client_ip }
       it { should == MinimalHttp::Request::BAD_REQUEST }
     end
     
@@ -54,6 +58,7 @@ describe MinimalHttp::RequestParser do
     describe "first request" do
       subject { parsed_requests[0] }
     
+      its(:client_ip) { should == client_ip }
       its(:http_method) { should == 'GET' }
       its(:request_url) { should == '/' }
       it { should be_keep_alive }
@@ -62,6 +67,7 @@ describe MinimalHttp::RequestParser do
     describe "second request" do
       subject { parsed_requests[1] }
       
+      its(:client_ip) { should == client_ip }
       its(:http_method) { should == 'HEAD' }
       its(:request_url) { should == '/blah' }
       it { should_not be_keep_alive }

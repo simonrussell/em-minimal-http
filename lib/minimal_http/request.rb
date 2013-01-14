@@ -2,6 +2,8 @@
 
 class MinimalHttp::Request
   
+  attr_reader :timestamp
+  attr_reader :client_ip
   attr_reader :http_version
   attr_reader :http_method
   attr_reader :request_url
@@ -9,6 +11,8 @@ class MinimalHttp::Request
   attr_reader :body
   
   def initialize(info)
+    @timestamp = Time.now
+    @client_ip = info.fetch(:client_ip)
     @http_version = info.fetch(:http_version)
     @http_method = info.fetch(:http_method)
     @request_url = info.fetch(:request_url)
@@ -53,6 +57,6 @@ class MinimalHttp::Request
     end
   end
   
-  BAD_REQUEST = new(http_version: '1.0', http_method: 'BADREQUEST', request_url: '', headers: {}, body: ''.encode!('ASCII-8BIT'), keep_alive: false)
+  BAD_REQUEST = new(client_ip: '0.0.0.0', http_version: '1.0', http_method: 'BADREQUEST', request_url: '', headers: {}, body: ''.encode!('ASCII-8BIT'), keep_alive: false)
   
 end

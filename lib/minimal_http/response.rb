@@ -2,9 +2,11 @@
 
 class MinimalHttp::Response
   
+  attr_reader :timestamp
   attr_reader :request, :status_code, :headers, :body
   
   def initialize(request, status_code, headers, body)
+    @timestamp = Time.now
     @request = request
     @status_code = status_code.to_i
     @headers = headers

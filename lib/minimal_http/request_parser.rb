@@ -4,7 +4,8 @@ class MinimalHttp::RequestParser
 
   EMPTY_BODY = ''.force_encoding('ASCII-8BIT').freeze
 
-  def initialize(pipeline)
+  def initialize(client_ip, pipeline)
+    @client_ip = client_ip
     @pipeline = pipeline
     @parser = Http::Parser.new(self)
     @body = EMPTY_BODY
@@ -24,6 +25,7 @@ class MinimalHttp::RequestParser
   
   def on_message_complete
     request = MinimalHttp::Request.new(
+                client_ip: @client_ip,
                 http_version: @parser.http_version.join('.'),
                 http_method: @parser.http_method,
                 request_url: @parser.request_url,
