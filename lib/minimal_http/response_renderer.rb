@@ -7,6 +7,7 @@ class MinimalHttp::ResponseRenderer
   end
   
   def <<(response)
+    puts "#{response.status_code} #{response.request.request_url}"
     @output << "HTTP/#{response.request.http_version} #{response.status_code} #{response.status_message}\r\n"
     
     response.headers.each do |k, v|

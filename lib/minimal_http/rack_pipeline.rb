@@ -12,11 +12,13 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
   
   def handle(request)
     env = {
-      'REQUEST_METHOD' => request.http_method,
+      'REQUEST_METHOD' => request.http_method.dup,
       'SERVER_NAME' => request.server_name,
       'SERVER_PORT' => request.server_port,
       'SCRIPT_NAME' => '',
-      'PATH_INFO' => request.request_url,
+      'PATH_INFO' => request.request_url.dup,
+      'REQUEST_PATH' => request.request_url.dup,
+      'REQUEST_URI' => request.request_url.dup,
       'QUERY_STRING' => request.query_string,
       
       'rack.version' => [1,1],
@@ -28,7 +30,9 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
       'rack.run_once' => false
     }
     
-    rack_response = @app.call(env)
+    add_headers!(env, request)
+    
+    rack_response = catch(:streaming) { @app.call(env) }
     request.response(*rack_response)
   end
   
@@ -44,6 +48,27 @@ class MinimalHttp::RackPipeline < MinimalHttp::Pipeline
   
   def self.factory(app)
     Factory.new(app)
+  end
+  
+  private
+  
+  def add_headers!(env, request)
+    request.headers.each do |header, value|
+      env[map_header(header)] = value
+    end
+  end
+  
+  def map_header(header)
+    header = "HTTP_#{header.upcase.gsub('-', '_')}"
+    
+    case header
+    when 'HTTP_CONTENT_TYPE'
+      'CONTENT_TYPE'
+    when 'HTTP_CONTENT_LENGTH'
+      'CONTENT_LENGTH'
+    else
+      header
+    end
   end
   
 end

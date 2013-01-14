@@ -16,6 +16,7 @@ class MinimalHttp::EmConnection < EM::Connection
 
   def unbind
     @stream << '' if @stream
+    @streaming_body.close if @streaming_body
   end
   
   def <<(output_data)

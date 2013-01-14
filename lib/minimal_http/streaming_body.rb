@@ -25,10 +25,17 @@ class MinimalHttp::StreamingBody
   end
   
   def close
-    if @buffer
-      @closed = true
+    @closed = true
+    @connection.body_complete! unless @buffer
+    @close_callbacks.each { |cb| cb.call } if @close_callbacks
+  end
+  
+  def on_close(&block)
+    if @closed
+      block.call
     else
-      @connection.body_complete!
+      @close_callbacks ||= []
+      @close_callbacks << block
     end
   end
   
